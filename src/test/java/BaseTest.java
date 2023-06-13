@@ -1,17 +1,19 @@
-import Constant.api.Booking;
+import constants.api.BookingAPI;
 import io.restassured.RestAssured;
 import io.restassured.builder.RequestSpecBuilder;
+import io.restassured.builder.ResponseSpecBuilder;
+import io.restassured.filter.log.LogDetail;
 import io.restassured.filter.log.RequestLoggingFilter;
 import io.restassured.http.ContentType;
-import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
+import io.restassured.specification.ResponseSpecification;
 import org.json.JSONObject;
-import org.testng.annotations.BeforeClass;
 
 import static io.restassured.RestAssured.given;
 
 public class BaseTest {
     private static RequestSpecification requestSpec;
+    private static ResponseSpecification responseSpec;
 
 //    @BeforeClass
 //    public void setup() {
@@ -27,7 +29,7 @@ public class BaseTest {
     public RequestSpecification requestSpecBuilder() {
         return new RequestSpecBuilder()
                 .addHeader("Content-Type", String.valueOf(ContentType.JSON))
-                .setBaseUri(Booking.baseURL)
+                .setBaseUri(BookingAPI.baseURL)
                 .addFilter(new RequestLoggingFilter())
                 .build();
     }
@@ -36,8 +38,16 @@ public class BaseTest {
         return new RequestSpecBuilder()
                 .addHeader("Content-Type", String.valueOf(ContentType.JSON))
                 .addCookie("token", getToken())
-                .setBaseUri(Booking.baseURL)
+                .setBaseUri(BookingAPI.baseURL)
                 .addFilter(new RequestLoggingFilter())
+                .build();
+    }
+
+    public ResponseSpecification responseSpecBuilder(int statusCode) {
+        return new ResponseSpecBuilder()
+                .expectStatusCode(statusCode)
+                .expectContentType(ContentType.JSON)
+                .log(LogDetail.ALL)
                 .build();
     }
 
@@ -49,7 +59,7 @@ public class BaseTest {
                 .spec(requestSpecBuilder())
                 .body(credentials.toString())
                 .when()
-                    .post(Booking.auth)
+                    .post(BookingAPI.auth)
                 .then()
                     .log().ifError()
                     .assertThat().statusCode(200)

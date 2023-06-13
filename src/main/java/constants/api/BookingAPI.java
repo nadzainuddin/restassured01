@@ -1,6 +1,6 @@
-package Constant.api;
+package constants.api;
 
-public class Booking {
+public class BookingAPI {
 
     public static final String baseURL = "https://restful-booker.herokuapp.com";
     public static final String auth = "/auth";
