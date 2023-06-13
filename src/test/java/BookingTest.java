@@ -1,4 +1,4 @@
-import api.Constant;
+import Constant.api.Booking;
 import io.restassured.RestAssured;
 import io.restassured.response.Response;
 import org.json.JSONObject;
@@ -10,35 +10,38 @@ import java.util.List;
 import java.util.Random;
 
 public class BookingTest extends BaseTest {
-    String token;
+    String token = getToken();
     Random random = new Random();
 
-    @BeforeTest
-    public void testSetup() {
-        token = getToken();
-        System.out.println("Token retrieved : " + token);
-    }
+//    @BeforeTest
+//    public void testSetup() {
+//        token = getToken();
+//        System.out.println("Token retrieved : " + token);
+//    }
 
     @Test
     public void pingService() {
         Response response =  RestAssured.given()
-                .header("Content-Type", "application/json")
+                .spec(requestSpecBuilder())
                 .when()
-                .get(Constant.ping)
-                .then().log().ifError()
-                .extract().response();
-        Assert.assertEquals(response.statusCode(), 201);
-        Assert.assertEquals(response.statusLine(), "HTTP/1.1 201 Created");
+                    .get(Booking.ping)
+                .then()
+                    .log().ifError()
+                    .assertThat().statusCode(201)
+                    .assertThat().statusLine("HTTP/1.1 201 Created")
+                    .extract().response();
     }
 
     @Test
     public void getAllBookingId() {
         Response response =  RestAssured.given()
-                .header("Content-Type", "application/json")
-                .when().get("https://restful-booker.herokuapp.com/booking")
-                .then().log().ifError()
-                .assertThat().statusCode(200)
-                .extract().response();
+                .spec(requestSpecBuilder())
+                .when()
+                    .get(Booking.booking)
+                .then()
+                    .log().ifError()
+                    .assertThat().statusCode(200)
+                    .extract().response();
     }
 
     @Test
@@ -46,12 +49,13 @@ public class BookingTest extends BaseTest {
         List<Integer> bookingIdList = getAllBookingIdList();
         int randomId = bookingIdList.get(random.nextInt(bookingIdList.size()));
         Response response =  RestAssured.given()
-                .header("Content-Type", "application/json")
+                .spec(requestSpecBuilder())
                 .when()
-                .get(Constant.bookingById, randomId)
-                .then().log().ifError()
-                .assertThat().statusCode(200)
-                .extract().response();
+                    .get(Booking.bookingById, randomId)
+                .then()
+                    .log().ifError()
+                    .assertThat().statusCode(200)
+                    .extract().response();
         System.out.println(response.path("firstname").toString());
         System.out.println(response.path("lastname").toString());
     }
@@ -71,14 +75,14 @@ public class BookingTest extends BaseTest {
         obj.put("additionalneeds", "none");
 
         Response response =  RestAssured.given()
-                .header("Content-Type", "application/json")
-                .accept("application/json")
+                .spec(requestSpecBuilder())
                 .body(obj.toString())
                 .when()
-                .post(Constant.booking)
-                .then().log().ifError()
-                .assertThat().statusCode(200)
-                .extract().response();
+                    .post(Booking.booking)
+                .then()
+                    .log().ifError()
+                    .assertThat().statusCode(200)
+                    .extract().response();
         System.out.println(response.path("booking.firstname").toString());
         System.out.println(response.path("bookingid").toString());
     }
@@ -87,26 +91,28 @@ public class BookingTest extends BaseTest {
     public void deleteBookingById() {
         int bookingId = getNewBookingId();
         Response response =  RestAssured.given()
-                .header("Content-Type", "application/json")
-                .cookie("token", token)
+                .spec(requestSpecBuilderWithToken())
+                //.cookie("token", token)
                 .when()
-                .delete(Constant.bookingById, bookingId)
+                    .delete(Booking.bookingById, bookingId)
                 .then()
-                .log().ifError()
-                .assertThat().statusCode(201)
-                .extract().response();
+                    .log().ifError()
+                    .assertThat().statusCode(201)
+                    .extract().response();
         System.out.println(response.statusLine());
+        System.out.println("deleted response : " + response.body().toString());
     }
 
     public List<Integer> getAllBookingIdList() {
         return RestAssured.given()
-                .header("Content-Type", "application/json")
-                .cookie("token=" + token)
-                //.header(Cookie, "token=" + token)
-                .when().get("https://restful-booker.herokuapp.com/booking")
-                .then().log().ifError()
-                .assertThat().statusCode(200)
-                .extract().jsonPath().getList("bookingid");
+                .spec(requestSpecBuilder())
+                .cookie("token", token)
+                .when()
+                    .get(Booking.booking)
+                .then()
+                    .log().ifError()
+                    .assertThat().statusCode(200)
+                    .extract().jsonPath().getList("bookingid");
     }
 
     public int getNewBookingId() {
@@ -123,12 +129,13 @@ public class BookingTest extends BaseTest {
         obj.put("additionalneeds", "none");
 
         return RestAssured.given()
-                .header("Content-Type", "application/json")
+                .spec(requestSpecBuilder())
                 .body(obj.toString())
                 .when()
-                .post(Constant.booking)
-                .then().log().ifError()
-                .assertThat().statusCode(200)
-                .extract().jsonPath().get("bookingid");
+                    .post(Booking.booking)
+                .then()
+                    .log().ifError()
+                    .assertThat().statusCode(200)
+                    .extract().jsonPath().get("bookingid");
     }
 }
