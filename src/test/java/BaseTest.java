@@ -12,19 +12,6 @@ import org.json.JSONObject;
 import static io.restassured.RestAssured.given;
 
 public class BaseTest {
-    private static RequestSpecification requestSpec;
-    private static ResponseSpecification responseSpec;
-
-//    @BeforeClass
-//    public void setup() {
-////        RequestSpecification requestSpec = new RequestSpecBuilder()
-////                .addHeader("Content-Type", String.valueOf(ContentType.JSON))
-////                .setBaseUri(Booking.baseURL)
-////                .addFilter(new RequestLoggingFilter())
-////                .build();
-////        RestAssured.requestSpecification = requestSpec;
-//        requestSpecBuilder();
-//    }
 
     public RequestSpecification requestSpecBuilder() {
         return new RequestSpecBuilder()
