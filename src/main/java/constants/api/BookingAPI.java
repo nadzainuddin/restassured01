@@ -7,7 +7,4 @@ public class BookingAPI {
     public static final String booking = "/booking";
     public static final String bookingById = "/booking/{id}";
     public static final String ping = "/ping";
-
-
-
 }
