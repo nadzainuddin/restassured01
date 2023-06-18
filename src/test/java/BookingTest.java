@@ -2,8 +2,10 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import static io.restassured.RestAssured.given;
 
 import io.qameta.allure.Description;
+import io.restassured.path.json.JsonPath;
 import io.restassured.response.Response;
 import org.apache.http.HttpStatus;
+import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import java.util.Collections;
@@ -35,8 +37,6 @@ public class BookingTest extends BaseTest {
 
     // GetBookingIds Test
     // Get all ids - verify200
-    // filter by firstname
-    // filter by lastname
     // filter by check in
     // filter by check out
     // filter by non exist firstname | lastname | checkin | checkout
@@ -54,8 +54,7 @@ public class BookingTest extends BaseTest {
     // filter by firstname and lastname with additional space
     // filter by firstname and lastname with symbol
 
-    @Test(description = "Verify able to retrieve all booking list")
-    @Description("Verify able to retrieve all booking list")
+    @Test(description = "GetBookingIds : Get all ids 200 OK")
     public void getAllBookingId() {
         given()
             .spec(requestSpecBuilder())
@@ -65,6 +64,154 @@ public class BookingTest extends BaseTest {
                 .log().ifError()
                 .assertThat().statusCode(HttpStatus.SC_OK)
                 .extract().response();
+    }
+
+    @Test(description = "GetBookingIds : Filter by firstname 200 OK")
+    public void getAllBookingIdByFirstname() {
+        Booking booking = getBookingDetails();
+        Response response = given()
+                .spec(requestSpecBuilder())
+                .queryParam("firstname", booking.getFirstname())
+            .when()
+                .get(BookingAPI.booking)
+            .then()
+                .log().ifError()
+                .assertThat().statusCode(HttpStatus.SC_OK)
+                .extract().response();
+
+        // other alternative
+        // => if there is db, compare with db
+        // => limit to 10
+        // => choose randomId to compareExpectedValue
+        List<Integer> resultIds = response.jsonPath().getList("bookingid", Integer.class);
+        int count = resultIds.size() > 5 ? 5 : resultIds.size();
+        for(int i = 0; i<count; i++) {
+            String expectedStr = given()
+                    .spec(requestSpecBuilder())
+                    .when()
+                    .get(BookingAPI.bookingById, resultIds.get(i))
+                    .then()
+                    .log().ifError()
+                    .assertThat().statusCode(HttpStatus.SC_OK)
+                    .extract().response().jsonPath().get("firstname");
+            Assert.assertEquals(expectedStr, booking.getFirstname());
+        }
+        //System.out.println(response.jsonPath().getList("bookingid", Integer.class) + " " );
+    }
+
+    @Test(description = "GetBookingIds : Filter by lastname 200 OK")
+    public void getAllBookingIdByLastname() {
+        Booking booking = getBookingDetails();
+        Response response = given()
+            .spec(requestSpecBuilder())
+            .queryParam("lastname", booking.getLastname())
+            .when()
+                .get(BookingAPI.booking)
+            .then()
+                .log().ifError()
+                .assertThat().statusCode(HttpStatus.SC_OK)
+                .extract().response();
+
+        List<Integer> resultIds = response.jsonPath().getList("bookingid", Integer.class);
+        int count = resultIds.size() > 5 ? 5 : resultIds.size();
+        for(int i = 0; i<count; i++) {
+            String expectedStr = given()
+                .spec(requestSpecBuilder())
+                .when()
+                    .get(BookingAPI.bookingById, resultIds.get(i))
+                .then()
+                    .log().ifError()
+                    .assertThat().statusCode(HttpStatus.SC_OK)
+                    .extract().response().jsonPath().get("lastname");
+            Assert.assertEquals(expectedStr, booking.getLastname());
+        }
+    }
+
+    @Test(description = "GetBookingIds : Filter by checkIn 200 OK")
+    public void getAllBookingIdByCheckIn() {
+        Booking booking = getBookingDetails();
+        Response response = given()
+                .spec(requestSpecBuilder())
+                .queryParam("checkin", booking.getBookingdates().getCheckin())
+                .when()
+                .get(BookingAPI.booking)
+                .then()
+                .log().ifError()
+                .assertThat().statusCode(HttpStatus.SC_OK)
+                .extract().response();
+
+        List<Integer> resultIds = response.jsonPath().getList("bookingid", Integer.class);
+        int count = resultIds.size() > 5 ? 5 : resultIds.size();
+        for(int i = 0; i<count; i++) {
+            String expectedStr = given()
+                    .spec(requestSpecBuilder())
+                    .when()
+                    .get(BookingAPI.bookingById, resultIds.get(i))
+                    .then()
+                    .log().ifError()
+                    .assertThat().statusCode(HttpStatus.SC_OK)
+                    .extract().response().jsonPath().get("bookingdates.checkin");
+            Assert.assertEquals(expectedStr, booking.getBookingdates().getCheckin());
+        }
+    }
+
+    @Test(description = "GetBookingIds : Filter by checkOut 200 OK")
+    public void getAllBookingIdByCheckOut() {
+        Booking booking = getBookingDetails();
+        Response response = given()
+                .spec(requestSpecBuilder())
+                .queryParam("checkout", booking.getBookingdates().getCheckout())
+                .when()
+                .get(BookingAPI.booking)
+                .then()
+                .log().ifError()
+                .assertThat().statusCode(HttpStatus.SC_OK)
+                .extract().response();
+
+        List<Integer> resultIds = response.jsonPath().getList("bookingid", Integer.class);
+        int count = resultIds.size() > 5 ? 5 : resultIds.size();
+        for(int i = 0; i<count; i++) {
+            String expectedStr = given()
+                    .spec(requestSpecBuilder())
+                    .when()
+                    .get(BookingAPI.bookingById, resultIds.get(i))
+                    .then()
+                    .log().ifError()
+                    .assertThat().statusCode(HttpStatus.SC_OK)
+                    .extract().response().jsonPath().get("bookingdates.checkout");
+            Assert.assertEquals(expectedStr, booking.getBookingdates().getCheckout());
+        }
+    }
+
+    @Test(description = "GetBookingIds : Filter by checkIn checkOut 200 OK")
+    public void getAllBookingIdByCheckInCheckOut() {
+        Booking booking = getBookingDetails();
+        System.out.println(booking.getBookingdates().getCheckin() + "--" + booking.getBookingdates().getCheckout());
+        Response response = given()
+                .spec(requestSpecBuilder())
+                .queryParam("checkin", booking.getBookingdates().getCheckin())
+                .queryParam("checkout", booking.getBookingdates().getCheckout())
+                .when()
+                .get(BookingAPI.booking)
+                .then()
+                .log().ifError()
+                .assertThat().statusCode(HttpStatus.SC_OK)
+                .extract().response();
+
+        List<Integer> resultIds = response.jsonPath().getList("bookingid", Integer.class);
+        int count = resultIds.size() > 5 ? 5 : resultIds.size();
+        for(int i = 0; i<count; i++) {
+            JsonPath expected = given()
+                    .spec(requestSpecBuilder())
+                    .when()
+                    .get(BookingAPI.bookingById, resultIds.get(i))
+                    .then()
+                    .log().ifError()
+                    .assertThat().statusCode(HttpStatus.SC_OK)
+                    .extract().response().jsonPath();
+            Assert.assertEquals(expected.get("bookingdates.checkin"), booking.getBookingdates().getCheckin());
+            Assert.assertEquals(expected.get("bookingdates.checkout"), booking.getBookingdates().getCheckout());
+        }
     }
 
     // GetBooking
@@ -260,5 +407,18 @@ public class BookingTest extends BaseTest {
                     .log().ifError()
                     .assertThat().statusCode(HttpStatus.SC_OK)
                     .extract().jsonPath().get("bookingid");
+    }
+
+    public Booking getBookingDetails() {
+        List<Integer> bookingIdList = getAllBookingIdList();
+        int randomId = bookingIdList.get(random.nextInt(bookingIdList.size()));
+        return given()
+                .spec(requestSpecBuilder())
+                .when()
+                .get(BookingAPI.bookingById, randomId)
+                .then()
+                .log().ifError()
+                .assertThat().statusCode(HttpStatus.SC_OK)
+                .extract().jsonPath().getObject("", Booking.class);
     }
 }
