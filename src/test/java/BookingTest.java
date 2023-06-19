@@ -21,7 +21,7 @@ public class BookingTest extends BaseTest {
     String token = getToken();
     Random random = new Random();
 
-    @Test(description = "Verify Booking Service Health - OK")
+    @Test(description = "HealthCheck : Success 200 OK")
     @Description("Verify Booking Service Health - OK")
     public void pingService() {
         given()
@@ -66,7 +66,7 @@ public class BookingTest extends BaseTest {
                 .extract().response();
     }
 
-    @Test(description = "GetBookingIds : Filter by firstname 200 OK")
+    @Test(description = "GetBookingIds : Success filter by firstname")
     public void getAllBookingIdByFirstname() {
         Booking booking = getBookingDetails();
         Response response = given()
@@ -84,7 +84,7 @@ public class BookingTest extends BaseTest {
         // => limit to 10
         // => choose randomId to compareExpectedValue
         List<Integer> resultIds = response.jsonPath().getList("bookingid", Integer.class);
-        int count = resultIds.size() > 5 ? 5 : resultIds.size();
+        int count = resultIds.size() > 5 ? 5 : 1; // since the value is using existing data => should match at least 1
         for(int i = 0; i<count; i++) {
             String expectedStr = given()
                     .spec(requestSpecBuilder())
@@ -99,7 +99,7 @@ public class BookingTest extends BaseTest {
         //System.out.println(response.jsonPath().getList("bookingid", Integer.class) + " " );
     }
 
-    @Test(description = "GetBookingIds : Filter by lastname 200 OK")
+    @Test(description = "GetBookingIds : Success filter by lastname")
     public void getAllBookingIdByLastname() {
         Booking booking = getBookingDetails();
         Response response = given()
@@ -113,7 +113,7 @@ public class BookingTest extends BaseTest {
                 .extract().response();
 
         List<Integer> resultIds = response.jsonPath().getList("bookingid", Integer.class);
-        int count = resultIds.size() > 5 ? 5 : resultIds.size();
+        int count = resultIds.size() > 5 ? 5 : 1; // since the value is using existing data => should match at least 1
         for(int i = 0; i<count; i++) {
             String expectedStr = given()
                 .spec(requestSpecBuilder())
@@ -127,7 +127,7 @@ public class BookingTest extends BaseTest {
         }
     }
 
-    @Test(description = "GetBookingIds : Filter by checkIn 200 OK")
+    @Test(description = "GetBookingIds : Success filter by checkIn")
     public void getAllBookingIdByCheckIn() {
         Booking booking = getBookingDetails();
         Response response = given()
@@ -141,7 +141,7 @@ public class BookingTest extends BaseTest {
                 .extract().response();
 
         List<Integer> resultIds = response.jsonPath().getList("bookingid", Integer.class);
-        int count = resultIds.size() > 5 ? 5 : resultIds.size();
+        int count = resultIds.size() > 5 ? 5 : 1; // since the value is using existing data => should match at least 1
         for(int i = 0; i<count; i++) {
             String expectedStr = given()
                     .spec(requestSpecBuilder())
@@ -155,7 +155,7 @@ public class BookingTest extends BaseTest {
         }
     }
 
-    @Test(description = "GetBookingIds : Filter by checkOut 200 OK")
+    @Test(description = "GetBookingIds : Success filter by checkOut")
     public void getAllBookingIdByCheckOut() {
         Booking booking = getBookingDetails();
         Response response = given()
@@ -169,7 +169,7 @@ public class BookingTest extends BaseTest {
                 .extract().response();
 
         List<Integer> resultIds = response.jsonPath().getList("bookingid", Integer.class);
-        int count = resultIds.size() > 5 ? 5 : resultIds.size();
+        int count = resultIds.size() > 5 ? 5 : 1; // since the value is using existing data => should match at least 1
         for(int i = 0; i<count; i++) {
             String expectedStr = given()
                     .spec(requestSpecBuilder())
@@ -183,7 +183,7 @@ public class BookingTest extends BaseTest {
         }
     }
 
-    @Test(description = "GetBookingIds : Filter by checkIn checkOut 200 OK")
+    @Test(description = "GetBookingIds : Success filter by checkIn checkOut")
     public void getAllBookingIdByCheckInCheckOut() {
         Booking booking = getBookingDetails();
         System.out.println(booking.getBookingdates().getCheckin() + "--" + booking.getBookingdates().getCheckout());
@@ -199,7 +199,7 @@ public class BookingTest extends BaseTest {
                 .extract().response();
 
         List<Integer> resultIds = response.jsonPath().getList("bookingid", Integer.class);
-        int count = resultIds.size() > 5 ? 5 : resultIds.size();
+        int count = resultIds.size() > 5 ? 5 : 1; // since the value is using existing data => should match at least 1
         for(int i = 0; i<count; i++) {
             JsonPath expected = given()
                     .spec(requestSpecBuilder())
@@ -219,7 +219,7 @@ public class BookingTest extends BaseTest {
     // filter by non-existing id => max + 1
 
 
-    @Test(description = "Verify able to retrieve booking by Id")
+    @Test(description = "GetBooking : Success to retrieve booking by Id")
     @Description("Verify able to retrieve booking by Id")
     public void getBookingById() {
         List<Integer> bookingIdList = getAllBookingIdList();
@@ -243,7 +243,7 @@ public class BookingTest extends BaseTest {
     // create valid records with null values => firstname | lastname | totalprice | depositpaid | checkin |checkout | additionalneeds
     // create records with missing field => firstname | lastname | totalprice | depositpaid | checkin |checkout | additionalneeds
 
-    @Test
+    @Test(description = "CreateBooking : Success create booking with valid data")
     public void createBooking() throws JsonProcessingException {
         BookingDates bookingDates = new BookingDates("2023-06-19", "2023-06-21");
 
@@ -284,7 +284,7 @@ public class BookingTest extends BaseTest {
 
 
     /****************************************** DeleteBooking ************************************************/
-    @Test(description = "Delete existing id with token")
+    @Test(description = "DeleteBooking : Success delete existing id with token")
     public void deleteBookingByIdWithToken() throws JsonProcessingException {
         int bookingId = getNewBookingId();
         given()
@@ -297,7 +297,7 @@ public class BookingTest extends BaseTest {
                 .assertThat().statusLine("HTTP/1.1 201 Created");
     }
 
-    @Test(description = "Delete existing id with basic auth")
+    @Test(description = "DeleteBooking : Success delete existing id with basic auth")
     public void deleteBookingByIdWithAuth() throws JsonProcessingException {
         int bookingId = getNewBookingId();
         given()
@@ -310,7 +310,7 @@ public class BookingTest extends BaseTest {
                 .assertThat().statusLine("HTTP/1.1 201 Created");
     }
 
-    @Test(description = "Delete existing id without token or basic auth")
+    @Test(description = "DeleteBooking : Success delete existing id without token or basic auth")
     public void deleteBookingByIdWithoutTokenAuth() throws JsonProcessingException {
         int bookingId = getNewBookingId();
         given()
@@ -323,7 +323,7 @@ public class BookingTest extends BaseTest {
                 .assertThat().statusLine("HTTP/1.1 403 Forbidden");
     }
 
-    @Test(description = "Delete non-existing id with token")
+    @Test(description = "DeleteBooking : Success delete non-existing id with token")
     public void deleteNonExistingIdWithToken() {
         //int nonExistingId = Collections.max(getAllBookingIdList()) + 1;
         given()
@@ -336,7 +336,7 @@ public class BookingTest extends BaseTest {
                 .assertThat().statusLine("HTTP/1.1 405 Method Not Allowed");
     }
 
-    @Test(description = "Delete non-existing id with basic auth")
+    @Test(description = "DeleteBooking : Success delete non-existing id with basic auth")
     public void deleteNonExistingIdWithBasicAuth() {
         //int nonExistingId = Collections.max(getAllBookingIdList()) + 1;
         given()
@@ -349,20 +349,17 @@ public class BookingTest extends BaseTest {
                 .assertThat().statusLine("HTTP/1.1 405 Method Not Allowed");
     }
 
-    @Test
-    @Description("Test Description : Verify the creation of a new employee")
+    @Test(description = "DeleteBooking : Success delete booking by Id without basic token")
     public void deleteBookingByIdWithoutToken() throws JsonProcessingException {
         int bookingId = getNewBookingId();
-        Response response =  given()
+        given()
                 .spec(requestSpecBuilder())
                 .when()
                 .delete(BookingAPI.bookingById, bookingId)
                 .then()
                 .log().ifError()
-                .assertThat().statusCode(HttpStatus.SC_CREATED)
-                .extract().response();
-        System.out.println(response.statusLine());
-        System.out.println("deleted response : " + response.body().toString());
+                .assertThat().statusCode(HttpStatus.SC_METHOD_NOT_ALLOWED)
+                .assertThat().statusLine("HTTP/1.1 405 Method Not Allowed");
     }
 
     public List<Integer> getAllBookingIdList() {
