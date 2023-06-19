@@ -9,9 +9,7 @@ import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 import common.Utils;
 import model.Booking;
@@ -307,9 +305,6 @@ public class BookingTest extends BaseTest {
     }
 
     // CreateBooking
-    // create valid records
-    // create empty records
-    // create valid records with invalid totalprice format
     // create valid records with null values => firstname | lastname | totalprice | depositpaid | checkin |checkout | additionalneeds
     // create records with missing field => firstname | lastname | totalprice | depositpaid | checkin |checkout | additionalneeds
 
@@ -327,14 +322,123 @@ public class BookingTest extends BaseTest {
                 bookingDates,
                 "Hey");
 
-        Response response =  given().spec(requestSpecBuilder())
+        JsonPath response =  given().spec(requestSpecBuilder())
                 .body(Utils.convertObj(booking))
             .when()
                 .post(BookingAPI.booking)
             .then()
                 .log().ifError()
                 .assertThat().statusCode(HttpStatus.SC_OK)
-                .extract().response();
+                .extract().response().jsonPath();
+        Assert.assertEquals(response.get("booking.firstname"), booking.getFirstname());
+        Assert.assertEquals(response.get("booking.lastname"), booking.getLastname());
+        Assert.assertEquals(Double.valueOf(response.get("booking.totalprice").toString()), booking.getTotalprice());
+        Assert.assertEquals(response.get("booking.depositpaid"), booking.isDepositpaid());
+        Assert.assertEquals(response.get("booking.bookingdates.checkin"), booking.getBookingdates().getCheckin());
+        Assert.assertEquals(response.get("booking.bookingdates.checkout"), booking.getBookingdates().getCheckout());
+        Assert.assertEquals(response.get("booking.additionalneeds"), booking.getAdditionalneeds());
+    }
+
+    @Test(description = "CreateBooking : Failed create booking with empty data")
+    public void createBookingWithEmptyData() throws JsonProcessingException {
+        Booking booking = null;
+        given().spec(requestSpecBuilder())
+                .body(Utils.convertObj(booking))
+            .when()
+                .post(BookingAPI.booking)
+            .then()
+                .log().ifError()
+                .assertThat().statusCode(HttpStatus.SC_BAD_REQUEST);
+    }
+
+    @Test(description = "CreateBooking : Failed create booking with invalid bookingDates format")
+    public void createBookingWithInvalidBookingDatesFormat() throws JsonProcessingException {
+        BookingDates bookingDates = new BookingDates(
+                "2023/06/19",
+                "2023/06/21");
+
+        Booking booking = new Booking(
+                "Erina",
+                "Endah",
+                59.00,
+                false,
+                bookingDates,
+                "Hey");
+        given().spec(requestSpecBuilder())
+                .body(Utils.convertObj(booking))
+                .when()
+                .post(BookingAPI.booking)
+                .then()
+                .log().ifError()
+                .assertThat().statusCode(HttpStatus.SC_BAD_REQUEST);
+    }
+
+    @Test(description = "CreateBooking : Failed create booking with invalid bookingDates format [2]")
+    public void createBookingWithInvalidBookingDates2Format() throws JsonProcessingException {
+        BookingDates bookingDates = new BookingDates(
+                "19.06.2023",
+                "21.06.2023");
+
+        Booking booking = new Booking(
+                "Erina",
+                "Endah",
+                59.00,
+                false,
+                bookingDates,
+                "Hey");
+        given().spec(requestSpecBuilder())
+                .body(Utils.convertObj(booking))
+                .when()
+                .post(BookingAPI.booking)
+                .then()
+                .log().ifError()
+                .assertThat().statusCode(HttpStatus.SC_BAD_REQUEST);
+    }
+
+    @Test(description = "CreateBooking : Failed create booking with invalid deposit format")
+    public void createBookingWithInvalidDepositFormat() {
+        BookingDates bookingDates = new BookingDates(
+                "2023-06-19",
+                "2023-06-21");
+
+        Map<String, Object> map = new HashMap<>();
+        map.put("firstname", "Erina");
+        map.put("lastname", "Endah");
+        map.put("totalprice", 99);
+        map.put("depositpaid", "true");
+        map.put("bookingdates", bookingDates);
+        map.put("additionalneeds", "nothing");
+        given().spec(requestSpecBuilder())
+                //.body(Utils.convertObj(map))
+                .body(map)
+                .when()
+                .post(BookingAPI.booking)
+                .then()
+                .log().ifError()
+                .assertThat().statusCode(HttpStatus.SC_BAD_REQUEST);
+    }
+
+    @Test(description = "CreateBooking : Failed create booking with invalid totalprice format")
+    public void createBookingWithInvalidTotalPriceFormat() {
+        BookingDates bookingDates = new BookingDates(
+                "2023-06-19",
+                "2023-06-21");
+
+        Map<String, Object> map = new HashMap<>();
+        map.put("firstname", "Erina");
+        map.put("lastname", "Endah");
+        map.put("totalprice", "99");
+        map.put("depositpaid", true);
+        map.put("bookingdates", bookingDates);
+        map.put("additionalneeds", "nothing");
+        given().spec(requestSpecBuilder())
+                //.body(Utils.convertObj(map))
+                .body(map)
+                .when()
+                .post(BookingAPI.booking)
+                .then()
+                .log().ifError()
+                .assertThat().statusCode(HttpStatus.SC_BAD_REQUEST);
     }
 
     // UpdateBooking (header cookie + auth => optional)
