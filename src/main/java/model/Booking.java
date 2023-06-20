@@ -2,16 +2,23 @@ package model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class Booking {
 
+    @JsonProperty("firstname")
     private String firstname;
+    @JsonProperty("lastname")
     private String lastname;
+    @JsonProperty("totalprice")
     private double totalprice;
+    @JsonProperty("depositpaid")
     private boolean depositpaid;
+    @JsonProperty("bookingdates")
     private BookingDates bookingdates;
+    @JsonProperty("additionalneeds")
     private String additionalneeds;
     public Booking() {
         super();
