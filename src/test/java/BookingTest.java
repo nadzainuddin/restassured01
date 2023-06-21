@@ -107,16 +107,9 @@ public class BookingTest extends BaseTest {
     @Test(description = "GetBookingIds : Success filter by checkIn")
     public void getAllBookingIdByCheckIn() {
         Booking booking = getBookingDetails();
-        Response response = given().spec(requestSpecBuilder())
-                .queryParam("checkin", booking.getBookingdates().getCheckin())
-            .when()
-                .get(BookingAPI.booking)
-            .then()
-                .log().ifError()
-                .assertThat().statusCode(HttpStatus.SC_OK)
-                .extract().response();
-
-        List<Integer> resultIds = response.jsonPath().getList("bookingid", Integer.class);
+        JsonPath resp = CommonUtilsAPI.GETQueryParam(requestSpecBuilder(),"checkin",
+                booking.getBookingdates().getCheckin(), BookingAPI.booking, HttpStatus.SC_OK);
+        List<Integer> resultIds = resp.getList("bookingid", Integer.class);
         int count = resultIds.size() > 5 ? 5 : 1; // since the value is using existing data => should match at least 1
         for(int i = 0; i<count; i++) {
             String expectedStr = given().spec(requestSpecBuilder())
@@ -133,16 +126,9 @@ public class BookingTest extends BaseTest {
     @Test(description = "GetBookingIds : Success filter by checkOut")
     public void getAllBookingIdByCheckOut() {
         Booking booking = getBookingDetails();
-        Response response = given().spec(requestSpecBuilder())
-                .queryParam("checkout", booking.getBookingdates().getCheckout())
-            .when()
-                .get(BookingAPI.booking)
-            .then()
-                .log().ifError()
-                .assertThat().statusCode(HttpStatus.SC_OK)
-                .extract().response();
-
-        List<Integer> resultIds = response.jsonPath().getList("bookingid", Integer.class);
+        JsonPath resp = CommonUtilsAPI.GETQueryParam(requestSpecBuilder(),"checkout",
+                booking.getBookingdates().getCheckout(), BookingAPI.booking, HttpStatus.SC_OK);
+        List<Integer> resultIds = resp.getList("bookingid", Integer.class);
         int count = resultIds.size() > 5 ? 5 : 1; // since the value is using existing data => should match at least 1
         for(int i = 0; i<count; i++) {
             String expectedStr = given().spec(requestSpecBuilder())
@@ -159,17 +145,14 @@ public class BookingTest extends BaseTest {
     @Test(description = "GetBookingIds : Success filter by checkIn checkOut")
     public void getAllBookingIdByCheckInCheckOut() {
         Booking booking = getBookingDetails();
-        Response response = given().spec(requestSpecBuilder())
-                .queryParam("checkin", booking.getBookingdates().getCheckin())
-                .queryParam("checkout", booking.getBookingdates().getCheckout())
-            .when()
-                .get(BookingAPI.booking)
-            .then()
-                .log().ifError()
-                .assertThat().statusCode(HttpStatus.SC_OK)
-                .extract().response();
+        Map<String, Object> map = new HashMap<>();
+        map.put("checkin", booking.getBookingdates().getCheckin());
+        map.put("checkout", booking.getBookingdates().getCheckout());
 
-        List<Integer> resultIds = response.jsonPath().getList("bookingid", Integer.class);
+        JsonPath resp = CommonUtilsAPI.GETQueryParams(requestSpecBuilder(),map,
+                BookingAPI.booking, HttpStatus.SC_OK);
+        List<Integer> resultIds = resp.getList("bookingid", Integer.class);
+
         int count = resultIds.size() > 5 ? 5 : 1; // since the value is using existing data => should match at least 1
         for(int i = 0; i<count; i++) {
             JsonPath expected = given().spec(requestSpecBuilder())
@@ -188,14 +171,8 @@ public class BookingTest extends BaseTest {
     public void getAllBookingIdByFirstnamePartially() {
         String firstname = getBookingDetails().getFirstname();
         if (firstname.length() > 3) {
-            JsonPath resp = given().spec(requestSpecBuilder())
-                    .queryParam("firstname", firstname.substring(0, 3))
-                    .when()
-                    .get(BookingAPI.booking)
-                    .then()
-                    .log().ifError()
-                    .assertThat().statusCode(HttpStatus.SC_OK)
-                    .extract().response().jsonPath();
+            JsonPath resp = CommonUtilsAPI.GETQueryParam(requestSpecBuilder(), "firstname",
+                    firstname.substring(0, 3), BookingAPI.booking, HttpStatus.SC_OK);
             // Should be 0 since there is no requirement allowing firstname to be searched partially
             Assert.assertEquals(resp.getList("bookingid").size(), 0);
         }
@@ -205,14 +182,8 @@ public class BookingTest extends BaseTest {
     public void getAllBookingIdByLastnamePartially() {
         String lastname = getBookingDetails().getLastname();
         if (lastname.length() > 3) {
-            JsonPath resp = given().spec(requestSpecBuilder())
-                    .queryParam("lastname", lastname.substring(0, 3))
-                    .when()
-                    .get(BookingAPI.booking)
-                    .then()
-                    .log().ifError()
-                    .assertThat().statusCode(HttpStatus.SC_OK)
-                    .extract().response().jsonPath();
+            JsonPath resp = CommonUtilsAPI.GETQueryParam(requestSpecBuilder(), "lastname",
+                    lastname.substring(0, 3), BookingAPI.booking, HttpStatus.SC_OK);
             // Should be 0 since there is no requirement allowing lastname to be searched partially
             Assert.assertEquals(resp.getList("bookingid").size(), 0);
         }
