@@ -25,45 +25,26 @@ public class BookingTest extends BaseTest {
     @Test(description = "HealthCheck : Success 200 OK")
     @Description("Verify Booking Service Health - OK")
     public void pingService() {
-        given().spec(requestSpecBuilder())
-            .when()
-                .get(BookingAPI.ping)
-            .then()
-                .log().ifError()
-                .assertThat().statusCode(HttpStatus.SC_CREATED)
-                .assertThat().statusLine("HTTP/1.1 201 Created")
-                .extract().response();
+        CommonUtilsAPI.GET(requestSpecBuilder(), BookingAPI.ping, HttpStatus.SC_CREATED);
     }
 
     //************************************** GetBookingIds Test **************************************//
     @Test(description = "GetBookingIds : Success retrieving all booking ids")
     public void getAllBookingId() {
-        given().spec(requestSpecBuilder())
-            .when()
-                .get(BookingAPI.booking)
-            .then()
-                .log().ifError()
-                .assertThat().statusCode(HttpStatus.SC_OK)
-                .extract().response();
+        CommonUtilsAPI.GET(requestSpecBuilder(), BookingAPI.booking, HttpStatus.SC_OK);
     }
 
     @Test(description = "GetBookingIds : Success filter by firstname")
     public void getAllBookingIdByFirstname() {
         Booking booking = getBookingDetails();
-        Response response = given().spec(requestSpecBuilder())
-                .queryParam("firstname", booking.getFirstname())
-            .when()
-                .get(BookingAPI.booking)
-            .then()
-                .log().ifError()
-                .assertThat().statusCode(HttpStatus.SC_OK)
-                .extract().response();
+        JsonPath resp = CommonUtilsAPI.GETQueryParam(
+                requestSpecBuilder(),"firstname", booking.getFirstname(), BookingAPI.booking, HttpStatus.SC_OK);
 
         // other alternative
         // => if there is db, compare with db
         // => limit to 10
         // => choose randomId to compareExpectedValue
-        List<Integer> resultIds = response.jsonPath().getList("bookingid", Integer.class);
+        List<Integer> resultIds = resp.getList("bookingid", Integer.class);
         int count = resultIds.size() > 5 ? 5 : 1; // since the value is using existing data => should match at least 1
         for(int i = 0; i<count; i++) {
             String expectedStr = given().spec(requestSpecBuilder())
@@ -83,16 +64,9 @@ public class BookingTest extends BaseTest {
     @Test(description = "GetBookingIds : Success filter by lastname")
     public void getAllBookingIdByLastname() {
         Booking booking = getBookingDetails();
-        Response response = given().spec(requestSpecBuilder())
-                .queryParam("lastname", booking.getLastname())
-            .when()
-                .get(BookingAPI.booking)
-            .then()
-                .log().ifError()
-                .assertThat().statusCode(HttpStatus.SC_OK)
-                .extract().response();
-
-        List<Integer> resultIds = response.jsonPath().getList("bookingid", Integer.class);
+        JsonPath resp = CommonUtilsAPI.GETQueryParam(
+                requestSpecBuilder(),"lastname", booking.getLastname(), BookingAPI.booking, HttpStatus.SC_OK);
+        List<Integer> resultIds = resp.getList("bookingid", Integer.class);
         int count = resultIds.size() > 5 ? 5 : 1; // since the value is using existing data => should match at least 1
         for(int i = 0; i<count; i++) {
             String expectedStr = given().spec(requestSpecBuilder())
@@ -109,17 +83,13 @@ public class BookingTest extends BaseTest {
     @Test(description = "GetBookingIds : Success filter by firstname lastname")
     public void getAllBookingIdByFirstnameLastname() {
         Booking booking = getBookingDetails();
-        Response response = given().spec(requestSpecBuilder())
-                .queryParam("firstname", booking.getFirstname())
-                .queryParam("lastname", booking.getLastname())
-            .when()
-                .get(BookingAPI.booking)
-            .then()
-                .log().ifError()
-                .assertThat().statusCode(HttpStatus.SC_OK)
-                .extract().response();
+        Map<String, Object> map = new HashMap<>();
+        map.put("firstname", booking.getFirstname());
+        map.put("lastname", booking.getLastname());
 
-        List<Integer> resultIds = response.jsonPath().getList("bookingid", Integer.class);
+        JsonPath resp = CommonUtilsAPI.GETQueryParams(
+                requestSpecBuilder(),map, BookingAPI.booking, HttpStatus.SC_OK);
+        List<Integer> resultIds = resp.getList("bookingid", Integer.class);
         int count = resultIds.size() > 5 ? 5 : 1; // since the value is using existing data => should match at least 1
         for(int i = 0; i<count; i++) {
             JsonPath expected = given().spec(requestSpecBuilder())
