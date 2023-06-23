@@ -213,13 +213,8 @@ public class BookingTest extends BaseTest {
 
     @Test(description = "GetBookingIds : Failed to filter by non-existing param")
     public void getAllBookingIdByNonExistingParam() {
-        given().spec(requestSpecBuilder())
-            .queryParam("test", "Josh")
-            .when()
-            .get(BookingAPI.booking)
-            .then()
-            .log().ifError()
-            .assertThat().statusCode(HttpStatus.SC_NOT_FOUND);
+        CommonUtilsAPI.GETQueryParam(requestSpecBuilder(), "test", "Josh",
+                BookingAPI.booking, HttpStatus.SC_NOT_FOUND);
     }
 
     @Test(description = "GetBookingIds : Failed to filter by totalprice")
