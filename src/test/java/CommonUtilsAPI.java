@@ -97,6 +97,16 @@ public class CommonUtilsAPI extends BaseTest {
                 .assertThat().statusCode(status);
     }
 
+    static void DELETEWithPathParam(RequestSpecification requestSpecification, String uri,
+                                    int pathParam, int status) {
+        given().spec(requestSpecification)
+            .when()
+                .delete(uri, pathParam)
+            .then()
+                .log().ifError()
+                .assertThat().statusCode(status);
+    }
+
 //    public JsonPath POSTQueryParam(String field, String value) {
 //
 //    }

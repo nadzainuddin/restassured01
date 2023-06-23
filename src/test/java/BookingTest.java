@@ -520,73 +520,43 @@ public class BookingTest extends BaseTest {
     @Test(description = "DeleteBooking : Success delete existing id with token")
     public void deleteBookingByIdWithToken() throws JsonProcessingException {
         int bookingId = getNewBookingId();
-        given().spec(requestSpecBuilderWithToken())
-            .when()
-                .delete(BookingAPI.bookingById, bookingId)
-            .then()
-                .log().ifError()
-                .assertThat().statusCode(HttpStatus.SC_CREATED)
-                .assertThat().statusLine("HTTP/1.1 201 Created");
+        CommonUtilsAPI.DELETEWithPathParam(requestSpecBuilderWithToken(),
+                BookingAPI.bookingById, bookingId, HttpStatus.SC_CREATED);
     }
 
     @Test(description = "DeleteBooking : Success delete existing id with basic auth")
     public void deleteBookingByIdWithAuth() throws JsonProcessingException {
         int bookingId = getNewBookingId();
-        given().spec(requestSpecBuilderWithAuth())
-            .when()
-                .delete(BookingAPI.bookingById, bookingId)
-            .then()
-                .log().ifError()
-                .assertThat().statusCode(HttpStatus.SC_CREATED)
-                .assertThat().statusLine("HTTP/1.1 201 Created");
+        CommonUtilsAPI.DELETEWithPathParam(requestSpecBuilderWithAuth(),
+                BookingAPI.bookingById, bookingId, HttpStatus.SC_CREATED);
     }
 
     @Test(description = "DeleteBooking : Success delete existing id without token or basic auth")
     public void deleteBookingByIdWithoutTokenAuth() throws JsonProcessingException {
         int bookingId = getNewBookingId();
-        given().spec(requestSpecBuilder())
-            .when()
-                .delete(BookingAPI.bookingById, bookingId)
-            .then()
-                .log().ifError()
-                .assertThat().statusCode(HttpStatus.SC_FORBIDDEN)
-                .assertThat().statusLine("HTTP/1.1 403 Forbidden");
+        CommonUtilsAPI.DELETEWithPathParam(requestSpecBuilder(),
+                BookingAPI.bookingById, bookingId, HttpStatus.SC_FORBIDDEN);
     }
 
     @Test(description = "DeleteBooking : Success delete non-existing id with token")
     public void deleteNonExistingIdWithToken() {
         //int nonExistingId = Collections.max(getAllBookingIdList()) + 1;
-        given().spec(requestSpecBuilderWithToken())
-            .when()
-                .delete(BookingAPI.bookingById, -1)
-            .then()
-                .log().ifError()
-                .assertThat().statusCode(HttpStatus.SC_METHOD_NOT_ALLOWED)
-                .assertThat().statusLine("HTTP/1.1 405 Method Not Allowed");
+        CommonUtilsAPI.DELETEWithPathParam(requestSpecBuilder(),
+                BookingAPI.bookingById, -1, HttpStatus.SC_METHOD_NOT_ALLOWED);
     }
 
     @Test(description = "DeleteBooking : Success delete non-existing id with basic auth")
     public void deleteNonExistingIdWithBasicAuth() {
         //int nonExistingId = Collections.max(getAllBookingIdList()) + 1;
-        given().spec(requestSpecBuilderWithAuth())
-            .when()
-                .delete(BookingAPI.bookingById, -1)
-            .then()
-                .log().ifError()
-                .assertThat().statusCode(HttpStatus.SC_METHOD_NOT_ALLOWED)
-                .assertThat().statusLine("HTTP/1.1 405 Method Not Allowed");
+        CommonUtilsAPI.DELETEWithPathParam(requestSpecBuilderWithAuth(),
+                BookingAPI.bookingById, -1, HttpStatus.SC_METHOD_NOT_ALLOWED);
     }
 
     @Test(description = "DeleteBooking : Success delete booking by Id without basic token")
     public void deleteBookingByIdWithoutToken() throws JsonProcessingException {
         int bookingId = getNewBookingId();
-        given().spec(requestSpecBuilder())
-            .when()
-                .delete(BookingAPI.bookingById, bookingId)
-            .then()
-                .log().ifError()
-                .assertThat().statusCode(HttpStatus.SC_METHOD_NOT_ALLOWED)
-                .assertThat().statusLine("HTTP/1.1 405 Method Not Allowed");
+        CommonUtilsAPI.DELETEWithPathParam(requestSpecBuilder(),
+                BookingAPI.bookingById, bookingId, HttpStatus.SC_METHOD_NOT_ALLOWED);
     }
 
     public List<Integer> getAllBookingIdList() {
@@ -657,7 +627,6 @@ public class BookingTest extends BaseTest {
                     .assertThat().statusCode(HttpStatus.SC_OK)
                     .extract().jsonPath().getObject("", Booking.class);
     }
-
 
     @DataProvider(name = "non-existing-value")
     public Object[][] nonExistingValue(){
