@@ -38,8 +38,8 @@ public class BookingTest extends BaseTest {
     public void getAllBookingIdByFirstname() {
         Booking booking = getBookingDetails();
         JsonPath resp = CommonUtilsAPI.GETQueryParam(
-                requestSpecBuilder(),"firstname", booking.getFirstname(), BookingAPI.booking, HttpStatus.SC_OK);
-
+                requestSpecBuilder(),"firstname", booking.getFirstname(), BookingAPI.booking,
+                HttpStatus.SC_OK);
         // other alternative
         // => if there is db, compare with db
         // => limit to 10
@@ -47,35 +47,23 @@ public class BookingTest extends BaseTest {
         List<Integer> resultIds = resp.getList("bookingid", Integer.class);
         int count = resultIds.size() > 5 ? 5 : 1; // since the value is using existing data => should match at least 1
         for(int i = 0; i<count; i++) {
-            String expectedStr = given().spec(requestSpecBuilder())
-                .when()
-                    .get(BookingAPI.bookingById, resultIds.get(i))
-                .then()
-                    .log().ifError()
-                    .assertThat().statusCode(HttpStatus.SC_OK)
-                    .extract().response().jsonPath().get("firstname");
+            String expectedStr = CommonUtilsAPI.GETFieldValue(requestSpecBuilder(),
+                    BookingAPI.bookingById, "firstname", resultIds.get(i), HttpStatus.SC_OK);
             Assert.assertEquals(expectedStr, booking.getFirstname());
         }
-        //System.out.println(response.jsonPath().getList("bookingid", Integer.class) + " " );
     }
-
-
 
     @Test(description = "GetBookingIds : Success filter by lastname")
     public void getAllBookingIdByLastname() {
         Booking booking = getBookingDetails();
         JsonPath resp = CommonUtilsAPI.GETQueryParam(
                 requestSpecBuilder(),"lastname", booking.getLastname(), BookingAPI.booking, HttpStatus.SC_OK);
+
         List<Integer> resultIds = resp.getList("bookingid", Integer.class);
         int count = resultIds.size() > 5 ? 5 : 1; // since the value is using existing data => should match at least 1
         for(int i = 0; i<count; i++) {
-            String expectedStr = given().spec(requestSpecBuilder())
-                .when()
-                    .get(BookingAPI.bookingById, resultIds.get(i))
-                .then()
-                    .log().ifError()
-                    .assertThat().statusCode(HttpStatus.SC_OK)
-                    .extract().response().jsonPath().get("lastname");
+            String expectedStr = CommonUtilsAPI.GETFieldValue(requestSpecBuilder(),
+                    BookingAPI.bookingById, "lastname", resultIds.get(i), HttpStatus.SC_OK);
             Assert.assertEquals(expectedStr, booking.getLastname());
         }
     }
@@ -109,16 +97,12 @@ public class BookingTest extends BaseTest {
         Booking booking = getBookingDetails();
         JsonPath resp = CommonUtilsAPI.GETQueryParam(requestSpecBuilder(),"checkin",
                 booking.getBookingdates().getCheckin(), BookingAPI.booking, HttpStatus.SC_OK);
+
         List<Integer> resultIds = resp.getList("bookingid", Integer.class);
         int count = resultIds.size() > 5 ? 5 : 1; // since the value is using existing data => should match at least 1
         for(int i = 0; i<count; i++) {
-            String expectedStr = given().spec(requestSpecBuilder())
-                .when()
-                    .get(BookingAPI.bookingById, resultIds.get(i))
-                .then()
-                    .log().ifError()
-                    .assertThat().statusCode(HttpStatus.SC_OK)
-                    .extract().response().jsonPath().get("bookingdates.checkin");
+            String expectedStr = CommonUtilsAPI.GETFieldValue(requestSpecBuilder(),
+                    BookingAPI.bookingById, "bookingdates.checkin", resultIds.get(i), HttpStatus.SC_OK);
             Assert.assertEquals(expectedStr, booking.getBookingdates().getCheckin());
         }
     }
@@ -128,16 +112,12 @@ public class BookingTest extends BaseTest {
         Booking booking = getBookingDetails();
         JsonPath resp = CommonUtilsAPI.GETQueryParam(requestSpecBuilder(),"checkout",
                 booking.getBookingdates().getCheckout(), BookingAPI.booking, HttpStatus.SC_OK);
+
         List<Integer> resultIds = resp.getList("bookingid", Integer.class);
         int count = resultIds.size() > 5 ? 5 : 1; // since the value is using existing data => should match at least 1
         for(int i = 0; i<count; i++) {
-            String expectedStr = given().spec(requestSpecBuilder())
-                .when()
-                    .get(BookingAPI.bookingById, resultIds.get(i))
-                .then()
-                    .log().ifError()
-                    .assertThat().statusCode(HttpStatus.SC_OK)
-                    .extract().response().jsonPath().get("bookingdates.checkout");
+            String expectedStr = CommonUtilsAPI.GETFieldValue(requestSpecBuilder(),
+                    BookingAPI.bookingById, "bookingdates.checkout", resultIds.get(i), HttpStatus.SC_OK);
             Assert.assertEquals(expectedStr, booking.getBookingdates().getCheckout());
         }
     }
@@ -396,13 +376,8 @@ public class BookingTest extends BaseTest {
 
     @Test(description = "GetBooking : Failed to retrieve booking by non-existing Id")
     public void getBookingByNonExistingId() {
-        given().spec(requestSpecBuilder())
-            .when()
-            .get(BookingAPI.bookingById, -1)
-            .then()
-            .log().ifError()
-            .assertThat().statusCode(HttpStatus.SC_NOT_FOUND)
-            .extract().response();
+        CommonUtilsAPI.GETWithPathParam(requestSpecBuilder(), BookingAPI.bookingById,
+                -1, HttpStatus.SC_NOT_FOUND);
         // If there is access to db => sort and get max => max + 1
         // (unable to sort by collections as the id is dynamically retrieved)
     }
@@ -425,14 +400,8 @@ public class BookingTest extends BaseTest {
                 bookingDates,
                 "Hey");
 
-        JsonPath response =  given().spec(requestSpecBuilder())
-                .body(Utils.convertObj(booking))
-            .when()
-                .post(BookingAPI.booking)
-            .then()
-                .log().ifError()
-                .assertThat().statusCode(HttpStatus.SC_OK)
-                .extract().response().jsonPath();
+        JsonPath response =  CommonUtilsAPI.POSTWithBodyReq(requestSpecBuilder(), booking,
+                BookingAPI.booking, HttpStatus.SC_OK);
         Assert.assertEquals(response.get("booking.firstname"), booking.getFirstname());
         Assert.assertEquals(response.get("booking.lastname"), booking.getLastname());
         Assert.assertEquals(Double.valueOf(response.get("booking.totalprice").toString()), booking.getTotalprice());
@@ -445,13 +414,7 @@ public class BookingTest extends BaseTest {
     @Test(description = "CreateBooking : Failed create booking with empty data")
     public void createBookingWithEmptyData() throws JsonProcessingException {
         Booking booking = null;
-        given().spec(requestSpecBuilder())
-                .body(Utils.convertObj(booking))
-            .when()
-                .post(BookingAPI.booking)
-            .then()
-                .log().ifError()
-                .assertThat().statusCode(HttpStatus.SC_BAD_REQUEST);
+        CommonUtilsAPI.POSTBodyReq(requestSpecBuilder(), booking, BookingAPI.booking, HttpStatus.SC_BAD_REQUEST);
     }
 
     @Test(description = "CreateBooking : Failed create booking with invalid bookingDates format")
@@ -467,13 +430,7 @@ public class BookingTest extends BaseTest {
                 false,
                 bookingDates,
                 "Hey");
-        given().spec(requestSpecBuilder())
-                .body(Utils.convertObj(booking))
-                .when()
-                .post(BookingAPI.booking)
-                .then()
-                .log().ifError()
-                .assertThat().statusCode(HttpStatus.SC_BAD_REQUEST);
+        CommonUtilsAPI.POSTBodyReq(requestSpecBuilder(), booking, BookingAPI.booking, HttpStatus.SC_BAD_REQUEST);
     }
 
     @Test(description = "CreateBooking : Failed create booking with invalid bookingDates format [2]")
@@ -489,17 +446,11 @@ public class BookingTest extends BaseTest {
                 false,
                 bookingDates,
                 "Hey");
-        given().spec(requestSpecBuilder())
-                .body(Utils.convertObj(booking))
-                .when()
-                .post(BookingAPI.booking)
-                .then()
-                .log().ifError()
-                .assertThat().statusCode(HttpStatus.SC_BAD_REQUEST);
+        CommonUtilsAPI.POSTBodyReq(requestSpecBuilder(), booking, BookingAPI.booking, HttpStatus.SC_BAD_REQUEST);
     }
 
     @Test(description = "CreateBooking : Failed create booking with invalid deposit format")
-    public void createBookingWithInvalidDepositFormat() {
+    public void createBookingWithInvalidDepositFormat() throws JsonProcessingException {
         BookingDates bookingDates = new BookingDates(
                 "2023-06-19",
                 "2023-06-21");
@@ -511,18 +462,11 @@ public class BookingTest extends BaseTest {
         map.put("depositpaid", "true");
         map.put("bookingdates", bookingDates);
         map.put("additionalneeds", "nothing");
-        given().spec(requestSpecBuilder())
-                //.body(Utils.convertObj(map))
-                .body(map)
-                .when()
-                .post(BookingAPI.booking)
-                .then()
-                .log().ifError()
-                .assertThat().statusCode(HttpStatus.SC_BAD_REQUEST);
+        CommonUtilsAPI.POSTBodyReq(requestSpecBuilder(), map, BookingAPI.booking, HttpStatus.SC_BAD_REQUEST);
     }
 
     @Test(description = "CreateBooking : Failed create booking with invalid totalprice format")
-    public void createBookingWithInvalidTotalPriceFormat() {
+    public void createBookingWithInvalidTotalPriceFormat() throws JsonProcessingException {
         BookingDates bookingDates = new BookingDates(
                 "2023-06-19",
                 "2023-06-21");
@@ -534,14 +478,7 @@ public class BookingTest extends BaseTest {
         map.put("depositpaid", true);
         map.put("bookingdates", bookingDates);
         map.put("additionalneeds", "nothing");
-        given().spec(requestSpecBuilder())
-                //.body(Utils.convertObj(map))
-                .body(map)
-                .when()
-                .post(BookingAPI.booking)
-                .then()
-                .log().ifError()
-                .assertThat().statusCode(HttpStatus.SC_BAD_REQUEST);
+        CommonUtilsAPI.POSTBodyReq(requestSpecBuilder(), map, BookingAPI.booking, HttpStatus.SC_BAD_REQUEST);
     }
 
     // ********************************* UpdateBooking ************************************** //
