@@ -28,7 +28,7 @@ public class BookingTest extends BaseTest {
         CommonUtilsAPI.GET(requestSpecBuilder(), BookingAPI.ping, HttpStatus.SC_CREATED);
     }
 
-    //************************************** GetBookingIds Test **************************************//
+    // ********************************* GetBookingIds Test ******************************** //
     @Test(description = "GetBookingIds : Success retrieving all booking ids")
     public void getAllBookingId() {
         CommonUtilsAPI.GET(requestSpecBuilder(), BookingAPI.booking, HttpStatus.SC_OK);
@@ -80,15 +80,10 @@ public class BookingTest extends BaseTest {
         List<Integer> resultIds = resp.getList("bookingid", Integer.class);
         int count = resultIds.size() > 5 ? 5 : 1; // since the value is using existing data => should match at least 1
         for(int i = 0; i<count; i++) {
-            JsonPath expected = given().spec(requestSpecBuilder())
-                .when()
-                    .get(BookingAPI.bookingById, resultIds.get(i))
-                .then()
-                    .log().ifError()
-                    .assertThat().statusCode(HttpStatus.SC_OK)
-                    .extract().response().jsonPath();
-            Assert.assertEquals(expected.get("firstname"), booking.getFirstname());
-            Assert.assertEquals(expected.get("lastname"), booking.getLastname());
+            JsonPath res = CommonUtilsAPI.GET(requestSpecBuilder(),
+                    BookingAPI.bookingById, resultIds.get(i), HttpStatus.SC_OK);
+            Assert.assertEquals(res.get("firstname"), booking.getFirstname());
+            Assert.assertEquals(res.get("lastname"), booking.getLastname());
         }
     }
 
@@ -135,15 +130,10 @@ public class BookingTest extends BaseTest {
 
         int count = resultIds.size() > 5 ? 5 : 1; // since the value is using existing data => should match at least 1
         for(int i = 0; i<count; i++) {
-            JsonPath expected = given().spec(requestSpecBuilder())
-                .when()
-                    .get(BookingAPI.bookingById, resultIds.get(i))
-                .then()
-                    .log().ifError()
-                    .assertThat().statusCode(HttpStatus.SC_OK)
-                    .extract().response().jsonPath();
-            Assert.assertEquals(expected.get("bookingdates.checkin"), booking.getBookingdates().getCheckin());
-            Assert.assertEquals(expected.get("bookingdates.checkout"), booking.getBookingdates().getCheckout());
+            JsonPath res = CommonUtilsAPI.GET(requestSpecBuilder(),
+                    BookingAPI.bookingById, resultIds.get(i), HttpStatus.SC_OK);
+            Assert.assertEquals(res.get("bookingdates.checkin"), booking.getBookingdates().getCheckin());
+            Assert.assertEquals(res.get("bookingdates.checkout"), booking.getBookingdates().getCheckout());
         }
     }
 
@@ -171,44 +161,35 @@ public class BookingTest extends BaseTest {
 
     @Test(description = "GetBookingIds : Failed to filter by correct firstname incorrect lastname partially")
     public void getAllBookingIdByFirstnameIncorrectLastname() {
-        JsonPath resp = given().spec(requestSpecBuilder())
-                .queryParam("firstname", getBookingDetails().getFirstname())
-                .queryParam("lastname", getBookingDetails().getLastname()+"$")
-            .when()
-                .get(BookingAPI.booking)
-            .then()
-                .log().ifError()
-                .assertThat().statusCode(HttpStatus.SC_OK)
-                .extract().response().jsonPath();
-        Assert.assertEquals(resp.getList("bookingid").size(), 0);
+        Map<String, Object> req = new HashMap<>();
+        req.put("firstname", getBookingDetails().getFirstname());
+        req.put("lastname", getBookingDetails().getLastname()+"$");
+
+        JsonPath res = CommonUtilsAPI.GETQueryParams(requestSpecBuilder(), req,
+                BookingAPI.booking, HttpStatus.SC_OK);
+        Assert.assertEquals(res.getList("bookingid").size(), 0);
     }
 
     @Test(description = "GetBookingIds : Failed to filter by firstname and lastname with spaces")
     public void getAllBookingIdByFirstnameLastnameWithSpaces() {
-        JsonPath resp = given().spec(requestSpecBuilder())
-                .queryParam("firstname", getBookingDetails().getFirstname() + " ")
-                .queryParam("lastname", " " + getBookingDetails().getLastname())
-                .when()
-                .get(BookingAPI.booking)
-                .then()
-                .log().ifError()
-                .assertThat().statusCode(HttpStatus.SC_OK)
-                .extract().response().jsonPath();
-        Assert.assertEquals(resp.getList("bookingid").size(), 0);
+        Map<String, Object> req = new HashMap<>();
+        req.put("firstname", getBookingDetails().getFirstname() + " ");
+        req.put("lastname", " " + getBookingDetails().getLastname());
+
+        JsonPath res = CommonUtilsAPI.GETQueryParams(requestSpecBuilder(), req,
+                BookingAPI.booking, HttpStatus.SC_OK);
+        Assert.assertEquals(res.getList("bookingid").size(), 0);
     }
 
     @Test(description = "GetBookingIds : Failed to filter by incorrect firstname correct lastname partially")
     public void getAllBookingIdByLastnameIncorrectFirstname() {
-        JsonPath resp = given().spec(requestSpecBuilder())
-                .queryParam("firstname", "%"+getBookingDetails().getFirstname())
-                .queryParam("lastname", getBookingDetails().getLastname())
-            .when()
-                .get(BookingAPI.booking)
-            .then()
-                .log().ifError()
-                .assertThat().statusCode(HttpStatus.SC_OK)
-                .extract().response().jsonPath();
-        Assert.assertEquals(resp.getList("bookingid").size(), 0);
+        Map<String, Object> req = new HashMap<>();
+        req.put("firstname", "%"+getBookingDetails().getFirstname());
+        req.put("lastname", getBookingDetails().getLastname());
+
+        JsonPath res = CommonUtilsAPI.GETQueryParams(requestSpecBuilder(), req,
+                BookingAPI.booking, HttpStatus.SC_OK);
+        Assert.assertEquals(res.getList("bookingid").size(), 0);
     }
 
     @Test(description = "GetBookingIds : Failed to filter by non-existing param")
@@ -219,57 +200,37 @@ public class BookingTest extends BaseTest {
 
     @Test(description = "GetBookingIds : Failed to filter by totalprice")
     public void getAllBookingIdByTotalPrice() {
-        JsonPath resp = given().spec(requestSpecBuilder())
-                .queryParam("totalprice", getBookingDetails().getTotalprice())
-            .when()
-                .get(BookingAPI.booking)
-            .then()
-                .log().ifError()
-                .assertThat().statusCode(HttpStatus.SC_OK)
-                .extract().jsonPath();
-        Assert.assertEquals(resp.getList("bookingid").size(), 0);
+        JsonPath res = CommonUtilsAPI.GETQueryParam(requestSpecBuilder(), "totalprice",
+                getBookingDetails().getTotalprice(), BookingAPI.booking, HttpStatus.SC_OK);
+        Assert.assertEquals(res.getList("bookingid").size(), 0);
     }
 
     @Test(description = "GetBookingIds : Failed to filter by depositpaid")
     public void getAllBookingIdByDepositPaid() {
-        JsonPath resp = given().spec(requestSpecBuilder())
-                .queryParam("depositpaid", getBookingDetails().isDepositpaid())
-                .when()
-                .get(BookingAPI.booking)
-                .then()
-                .log().ifError()
-                .assertThat().statusCode(HttpStatus.SC_OK)
-                .extract().jsonPath();
-        Assert.assertEquals(resp.getList("bookingid").size(), 0);
+        JsonPath res = CommonUtilsAPI.GETQueryParam(requestSpecBuilder(), "depositpaid",
+                getBookingDetails().isDepositpaid(), BookingAPI.booking, HttpStatus.SC_OK);
+        Assert.assertEquals(res.getList("bookingid").size(), 0);
     }
 
     @Test(description = "GetBookingIds : Failed to filter by additionalneeds")
     public void getAllBookingIdByAdditionalNeeds() {
-        JsonPath resp = given().spec(requestSpecBuilder())
-                .queryParam("additionalneeds", getBookingDetails().getAdditionalneeds())
-            .when()
-                .get(BookingAPI.booking)
-            .then()
-                .log().ifError()
-                .assertThat().statusCode(HttpStatus.SC_OK)
-                .extract().jsonPath();
-        Assert.assertEquals(resp.getList("bookingid").size(), 0);
+        JsonPath res = CommonUtilsAPI.GETQueryParam(requestSpecBuilder(), "additionalneeds",
+                getBookingDetails().getAdditionalneeds(), BookingAPI.booking, HttpStatus.SC_OK);
+        Assert.assertEquals(res.getList("bookingid").size(), 0);
     }
 
     @Test(description = "GetBookingIds : Failed to filter by misspelled param")
     public void getAllBookingIdByMisspelledParam() {
         Booking booking = getBookingDetails();
-        JsonPath resp = given().spec(requestSpecBuilder())
-            .queryParam("firstname", booking.getFirstname())
-            .queryParam("lasname", booking.getLastname())
-            .queryParam("checkin", booking.getBookingdates().getCheckin())
-            .queryParam("checkout", booking.getBookingdates().getCheckout())
-            .when()
-            .get(BookingAPI.booking)
-            .then()
-            .log().ifError()
-            .assertThat().statusCode(HttpStatus.SC_OK).extract().jsonPath();
-        Assert.assertEquals(resp.getList("bookingid").size(), 0);
+        Map<String, Object> req = new HashMap<>();
+        req.put("firstname", booking.getFirstname());
+        req.put("lasname", booking.getLastname());
+        req.put("checkin", booking.getBookingdates().getCheckin());
+        req.put("checkout", booking.getBookingdates().getCheckout());
+
+        JsonPath res = CommonUtilsAPI.GETQueryParams(requestSpecBuilder(), req,
+                BookingAPI.booking, HttpStatus.SC_OK);
+        Assert.assertEquals(res.getList("bookingid").size(), 0);
     }
 
     @Test(
@@ -277,15 +238,11 @@ public class BookingTest extends BaseTest {
             dataProvider = "non-existing-value"
     )
     public void getAllBookingIdByNonExistingValue(String fieldname, String value) {
-        Response response = given().spec(requestSpecBuilder())
-                .queryParam(fieldname, value)
-            .when()
-                .get(BookingAPI.booking)
-            .then()
-                .log().ifError()
-                .assertThat().statusCode(HttpStatus.SC_OK)
-                .extract().response();
-        List<Integer> resultIds = response.jsonPath().getList("bookingid", Integer.class);
+        Map<String, Object> req = new HashMap<>();
+        req.put(fieldname, value);
+        Response res = CommonUtilsAPI.GETQueryParamResp(requestSpecBuilder(), fieldname, value,
+                BookingAPI.booking, HttpStatus.SC_OK);
+        List<Integer> resultIds = res.jsonPath().getList("bookingid", Integer.class);
         Assert.assertEquals(resultIds.size(), 0, "Records found with " + fieldname + " : " + value);
     }
 
@@ -294,14 +251,8 @@ public class BookingTest extends BaseTest {
             dataProvider = "invalid-date"
     )
     public void getAllBookingIdByInvalidBookingDates(String fieldname, String value) {
-        given().spec(requestSpecBuilder())
-                .queryParam(fieldname, value)
-            .when()
-                .get(BookingAPI.booking)
-            .then()
-                .log().ifError()
-                .assertThat().statusCode(HttpStatus.SC_INTERNAL_SERVER_ERROR)
-                .assertThat().statusLine("HTTP/1.1 500 Internal Server Error");
+        CommonUtilsAPI.GETQueryParam(requestSpecBuilder(), fieldname, value,
+                BookingAPI.booking, HttpStatus.SC_INTERNAL_SERVER_ERROR);
     }
 
     @Test(
@@ -310,69 +261,49 @@ public class BookingTest extends BaseTest {
     )
     public void getAllBookingIdByCorrectNameIncorrectBookingDates(String fieldname, String value) {
         Booking booking = getBookingDetails();
-        JsonPath resp = given().spec(requestSpecBuilder())
-                .queryParam("firstname", booking.getFirstname())
-                .queryParam("lastname", booking.getLastname())
-                .queryParam(fieldname, value)
-            .when()
-                .get(BookingAPI.booking)
-            .then()
-                .log().ifError()
-                .assertThat().statusCode(HttpStatus.SC_OK)
-                .extract().response().jsonPath();
-        Assert.assertEquals(resp.getList("bookingid").size(), 0);
+        Map<String, Object> req = new HashMap<>();
+        req.put("firstname", booking.getFirstname());
+        req.put("lastname", booking.getLastname());
+        req.put(fieldname, value);
+
+        JsonPath res = CommonUtilsAPI.GETQueryParams(requestSpecBuilder(), req, BookingAPI.booking,
+                HttpStatus.SC_OK);
+        Assert.assertEquals(res.getList("bookingid").size(), 0);
     }
 
     @Test(description = "GetBookingIds : Failed to filter by incorrect checkin format")
     public void getAllBookingIdByIncorrectCheckInDateFormat() {
         Booking booking = getBookingDetails();
-        Response response = given().spec(requestSpecBuilder())
-                .queryParam("checkin", booking.getBookingdates().getCheckin().replaceAll("-", "\\."))
-            .when()
-                .get(BookingAPI.booking)
-            .then()
-                .log().ifError()
-                .assertThat().statusCode(HttpStatus.SC_OK)
-                .extract().response();
-
-        List<Integer> resultIds = response.jsonPath().getList("bookingid", Integer.class);
+        Response res = CommonUtilsAPI.GETQueryParamResp(requestSpecBuilder(), "checkin",
+                booking.getBookingdates().getCheckin().replaceAll("-", "\\."),
+                BookingAPI.booking, HttpStatus.SC_OK);
+        List<Integer> resultIds = res.jsonPath().getList("bookingid", Integer.class);
         Assert.assertEquals(resultIds.size(), 0);
     }
 
     @Test(description = "GetBookingIds : Failed to filter by incorrect checkout format")
     public void getAllBookingIdByIncorrectCheckOutDateFormat() {
         Booking booking = getBookingDetails();
-        Response response = given().spec(requestSpecBuilder())
-                .queryParam("checkin", booking.getBookingdates().getCheckout().replaceAll("-", "\\."))
-            .when()
-                .get(BookingAPI.booking)
-            .then()
-                .log().ifError()
-                .assertThat().statusCode(HttpStatus.SC_OK)
-                .extract().response();
-
-        List<Integer> resultIds = response.jsonPath().getList("bookingid", Integer.class);
+        Response res = CommonUtilsAPI.GETQueryParamResp(requestSpecBuilder(), "checkout",
+                booking.getBookingdates().getCheckout().replaceAll("-", "/"),
+                BookingAPI.booking, HttpStatus.SC_OK);
+        List<Integer> resultIds = res.jsonPath().getList("bookingid", Integer.class);
         Assert.assertEquals(resultIds.size(), 0);
     }
 
-    // **************************** GetBooking ******************************** //
+    // **************************************** GetBooking ************************************ //
     @Test(description = "GetBooking : Success to retrieve booking by Id")
     public void getBookingById() {
         List<Integer> bookingIdList = getAllBookingIdList();
         int randomId = bookingIdList.get(random.nextInt(bookingIdList.size()));
-        Response response = given().spec(requestSpecBuilder())
-            .when()
-                .get(BookingAPI.bookingById, randomId)
-            .then()
-                .log().ifError()
-                .assertThat().statusCode(HttpStatus.SC_OK)
-                .extract().response();
+        CommonUtilsAPI.GETWithPathParam(requestSpecBuilder(), BookingAPI.bookingById, randomId,
+                HttpStatus.SC_OK);
     }
 
     @Test(description = "GetBooking : Failed to retrieve booking by non-existing Id")
     public void getBookingByNonExistingId() {
-        CommonUtilsAPI.GETWithPathParam(requestSpecBuilder(), BookingAPI.bookingById,
-                -1, HttpStatus.SC_NOT_FOUND);
+        CommonUtilsAPI.GETWithPathParam(requestSpecBuilder(), BookingAPI.bookingById, -1,
+                HttpStatus.SC_NOT_FOUND);
         // If there is access to db => sort and get max => max + 1
         // (unable to sort by collections as the id is dynamically retrieved)
     }
@@ -496,17 +427,9 @@ public class BookingTest extends BaseTest {
 
         Map<String, Object> map = new HashMap<>();
         map.put("firstname", updatedName);
-
-        JsonPath resp = given().spec(requestSpecBuilderWithToken())
-                .body(map)
-            .when()
-                .patch(BookingAPI.bookingById, details.getBookingid())
-            .then()
-                .log().ifError()
-                .assertThat().statusCode(HttpStatus.SC_OK)
-                .assertThat().statusLine("HTTP/1.1 200 OK")
-                .extract().jsonPath();
-        Assert.assertEquals(resp.get("firstname"), updatedName);
+        JsonPath res = CommonUtilsAPI.PATCH(requestSpecBuilderWithToken(), map, BookingAPI.bookingById,
+                details.getBookingid(), HttpStatus.SC_OK);
+        Assert.assertEquals(res.get("firstname"), updatedName);
     }
     // update full records
     // update non-existing id => max id + 1
@@ -560,16 +483,6 @@ public class BookingTest extends BaseTest {
     }
 
     public List<Integer> getAllBookingIdList() {
-//        return given()
-//                .spec(requestSpecBuilder())
-//                .cookie("token", token)
-//                .when()
-//                    .get(BookingAPI.booking)
-//                .then()
-//                    .log().ifError()
-//                    .assertThat().statusCode(HttpStatus.SC_OK)
-//                    .extract().jsonPath().getList("bookingid");
-//
         List<Integer> bookingIds = given().spec(requestSpecBuilder())
                 .cookie("token", token)
             .when()
@@ -578,10 +491,7 @@ public class BookingTest extends BaseTest {
                 .log().ifError()
                 .assertThat().statusCode(HttpStatus.SC_OK)
                 .extract().jsonPath().getList("bookingid");
-
-        System.out.println("Before : " + bookingIds);
         Collections.sort(bookingIds);
-        System.out.println("After : " + bookingIds);
         return bookingIds;
 
     }
@@ -592,13 +502,13 @@ public class BookingTest extends BaseTest {
                 bookingDates, "Nothing");
 
         return given().spec(requestSpecBuilder())
-                    .body(Utils.convertObj(booking))
-                .when()
-                    .post(BookingAPI.booking)
-                .then()
-                    .log().ifError()
-                    .assertThat().statusCode(HttpStatus.SC_OK)
-                    .extract().jsonPath().get("bookingid");
+                .body(Utils.convertObj(booking))
+            .when()
+                .post(BookingAPI.booking)
+            .then()
+                .log().ifError()
+                .assertThat().statusCode(HttpStatus.SC_OK)
+                .extract().jsonPath().get("bookingid");
     }
 
     public BookingResponse getNewBookingDetails() throws JsonProcessingException {
@@ -608,9 +518,9 @@ public class BookingTest extends BaseTest {
 
         return given().spec(requestSpecBuilder())
                 .body(Utils.convertObj(booking))
-                .when()
+            .when()
                 .post(BookingAPI.booking)
-                .then()
+            .then()
                 .log().ifError()
                 .assertThat().statusCode(HttpStatus.SC_OK)
                 .extract().jsonPath().getObject("", BookingResponse.class);
@@ -619,46 +529,38 @@ public class BookingTest extends BaseTest {
     public Booking getBookingDetails() {
         List<Integer> bookingIdList = getAllBookingIdList();
         int randomId = bookingIdList.get(random.nextInt(bookingIdList.size()));
-        return given().spec(requestSpecBuilder())
-                .when()
-                    .get(BookingAPI.bookingById, randomId)
-                .then()
-                    .log().ifError()
-                    .assertThat().statusCode(HttpStatus.SC_OK)
-                    .extract().jsonPath().getObject("", Booking.class);
+        return CommonUtilsAPI.GETBookingDetails(requestSpecBuilder(), BookingAPI.bookingById, randomId,
+                HttpStatus.SC_OK);
     }
 
     @DataProvider(name = "non-existing-value")
     public Object[][] nonExistingValue(){
         return new Object[][] {
-                {"firstname", "non-existing"},
-                {"lastname", "non-existing"},
-                {"checkin", "2099-12-01"},
-                {"checkout", "2099-12-30"}
-                /*
-                more accurate test for checkin + checkout
-                value can be done if there is database
-                where the checkin and checkout record's value
-                can be sorted out to find latest and first date
-                new checkin + checkout value can use :
-                either latest + 1 or first - 1 date
-                */
+            {"firstname", "non-existing"},
+            {"lastname", "non-existing"},
+            {"checkin", "2099-12-01"},
+            {"checkout", "2099-12-30"}
+            /*
+            more accurate test for checkin + checkout value can be done if there is database
+            where the checkin and checkout record's value can be sorted out to find latest and
+            first date new checkin + checkout value can use : either latest + 1 or first - 1 date
+            */
         };
     }
 
     @DataProvider(name = "invalid-date")
     public Object[][] invalidDate(){
         return new Object[][] {
-                {"checkin", "2019-13-12"},
-                {"checkout", "2019-02-31"}
+            {"checkin", "2019-13-12"},
+            {"checkout", "2019-02-31"}
         };
     }
 
     @DataProvider(name = "incorrect-date")
     public Object[][] incorrectDate(){
         return new Object[][] {
-                {"checkin", "2999-11-12"},
-                {"checkout", "2999-02-19"}
+            {"checkin", "2999-11-12"},
+            {"checkout", "2999-02-19"}
         };
     }
 }
