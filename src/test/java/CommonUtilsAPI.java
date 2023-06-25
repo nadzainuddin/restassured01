@@ -3,9 +3,11 @@ import common.Utils;
 import io.restassured.path.json.JsonPath;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
-import model.Booking;
-
 import static io.restassured.RestAssured.given;
+import model.Booking;
+import model.BookingResponse;
+
+import java.util.List;
 import java.util.Map;
 
 public class CommonUtilsAPI extends BaseTest {
@@ -112,12 +114,24 @@ public class CommonUtilsAPI extends BaseTest {
     static Booking GETBookingDetails(RequestSpecification requestSpecification, String uri, int pathParam,
                                      int status) {
         return given().spec(requestSpecification)
-                .when()
+            .when()
                 .get(uri, pathParam)
-                .then()
+            .then()
                 .log().ifError()
                 .assertThat().statusCode(status)
                 .extract().jsonPath().getObject("", Booking.class);
+    }
+
+    static List<Integer> GETIntValues(RequestSpecification requestSpecification, String token,
+                                 String uri, int status, String fieldname) {
+        return given().spec(requestSpecification)
+                .cookie("token", token)
+            .when()
+                .get(uri)
+            .then()
+                .log().ifError()
+                .assertThat().statusCode(status)
+                .extract().jsonPath().getList(fieldname);
     }
 
     static JsonPath POSTWithBodyReq(RequestSpecification requestSpecification, Object object,
@@ -132,17 +146,6 @@ public class CommonUtilsAPI extends BaseTest {
                 .extract().response().jsonPath();
     }
 
-    static void POSTBodyReq(RequestSpecification requestSpecification, Object object,
-                                    String uri, int status) throws JsonProcessingException {
-        given().spec(requestSpecification)
-                .body(Utils.convertObj(object))
-            .when()
-                .post(uri)
-            .then()
-                .log().ifError()
-                .assertThat().statusCode(status);
-    }
-
     static void POSTBodyReq(RequestSpecification requestSpecification, Map<String, Object> bodyReq,
                             String uri, int status) throws JsonProcessingException {
         given().spec(requestSpecification)
@@ -153,6 +156,20 @@ public class CommonUtilsAPI extends BaseTest {
                 .log().ifError()
                 .assertThat().statusCode(status);
     }
+
+    static BookingResponse POSTBodyReq(RequestSpecification requestSpecification, Booking booking,
+                               String uri, int status) throws JsonProcessingException {
+        return given().spec(requestSpecification)
+                .body(Utils.convertObj(booking))
+            .when()
+                .post(uri)
+            .then()
+                .log().ifError()
+                .assertThat().statusCode(status)
+                .extract().jsonPath().getObject("", BookingResponse.class);
+    }
+
+
 
     static JsonPath PATCH(RequestSpecification requestSpecification, Map<String, Object> req, String uri,
                       int pathParam, int status) {

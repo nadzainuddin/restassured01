@@ -1,6 +1,4 @@
 import com.fasterxml.jackson.core.JsonProcessingException;
-import static io.restassured.RestAssured.given;
-
 import io.qameta.allure.Description;
 import io.restassured.path.json.JsonPath;
 import io.restassured.response.Response;
@@ -11,8 +9,6 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import java.util.*;
-
-import common.Utils;
 import model.Booking;
 import model.BookingDates;
 import constants.api.BookingAPI;
@@ -483,17 +479,10 @@ public class BookingTest extends BaseTest {
     }
 
     public List<Integer> getAllBookingIdList() {
-        List<Integer> bookingIds = given().spec(requestSpecBuilder())
-                .cookie("token", token)
-            .when()
-                .get(BookingAPI.booking)
-            .then()
-                .log().ifError()
-                .assertThat().statusCode(HttpStatus.SC_OK)
-                .extract().jsonPath().getList("bookingid");
+        List<Integer> bookingIds = CommonUtilsAPI.GETIntValues(requestSpecBuilder(), token,
+                BookingAPI.booking, HttpStatus.SC_OK, "bookingid");
         Collections.sort(bookingIds);
         return bookingIds;
-
     }
 
     public int getNewBookingId() throws JsonProcessingException {
@@ -501,14 +490,8 @@ public class BookingTest extends BaseTest {
         Booking booking = new Booking("Yaya", "Zaman", 59.00, false,
                 bookingDates, "Nothing");
 
-        return given().spec(requestSpecBuilder())
-                .body(Utils.convertObj(booking))
-            .when()
-                .post(BookingAPI.booking)
-            .then()
-                .log().ifError()
-                .assertThat().statusCode(HttpStatus.SC_OK)
-                .extract().jsonPath().get("bookingid");
+        return CommonUtilsAPI.POSTWithBodyReq(requestSpecBuilder(), booking,
+                BookingAPI.booking, HttpStatus.SC_OK).get("bookingid");
     }
 
     public BookingResponse getNewBookingDetails() throws JsonProcessingException {
@@ -516,14 +499,8 @@ public class BookingTest extends BaseTest {
         Booking booking = new Booking("Yaya", "Zaman", 59.00, false,
                 bookingDates, "Nothing");
 
-        return given().spec(requestSpecBuilder())
-                .body(Utils.convertObj(booking))
-            .when()
-                .post(BookingAPI.booking)
-            .then()
-                .log().ifError()
-                .assertThat().statusCode(HttpStatus.SC_OK)
-                .extract().jsonPath().getObject("", BookingResponse.class);
+        return CommonUtilsAPI.POSTBodyReq(requestSpecBuilder(), booking,
+                BookingAPI.booking, HttpStatus.SC_OK);
     }
 
     public Booking getBookingDetails() {
